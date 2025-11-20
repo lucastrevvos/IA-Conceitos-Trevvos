@@ -67,6 +67,55 @@ app.post("/chat", async (req, res) => {
   }
 });
 
+app.post("/resumo", async (req, res) => {
+  const { text, sentences } = req.body;
+
+  if (!text || typeof text !== "string") {
+    return res.status(400).json({
+      error: "Campo 'text' é obrigatório e deve ser uma string",
+    });
+  }
+
+  const numSentences = Number.isInteger(sentences) ? sentences : 4;
+
+  const prompt = `
+    Você receberá um texto em português.
+
+    Resuma esse texto em aproximadamente ${numSentences} frases curtas, objetivas e bem conectadas. Não invente informação nova, apenas reorganize e compacte o contéudo.
+
+    Texto original:
+    """${text}"""
+  `;
+
+  try {
+    const response = await client.responses.create({
+      model: "gpt-4o-mini",
+      input: [
+        {
+          role: "system",
+          content:
+            "Você é um assistente especializado em resumir textos em português de forma clara e objetiva.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    });
+
+    return res.json({
+      summary: response.output_text,
+    });
+  } catch (error) {
+    console.error("Erro ao chamar OpenAI em /resumo:", error);
+
+    return res.status(500).json({
+      error: "Erro interno ao gerar resumo",
+      details: error.message,
+    });
+  }
+});
+
 app.get("/", (req, res) => {
   return res.json({
     status: "ok",
