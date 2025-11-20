@@ -5,7 +5,7 @@
   "description": "",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/chat.js",
+    "single": "node src/index.js",
     "chat": "node src/terminal-chat.js",
     "dev:api": "node --watch src/server.js"
   },
@@ -17,6 +17,7 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "multer": "^2.0.2",
     "openai": "^6.9.1"
   }
 }

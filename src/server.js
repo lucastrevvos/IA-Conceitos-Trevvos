@@ -3,6 +3,48 @@ import express from "express";
 import cors from "cors";
 import OpenAI from "openai";
 
+import multer from "multer";
+import path from "node:path";
+import fs from "node:fs";
+
+const uploadFolder = path.resolve("uploads");
+
+if (!fs.existsSync(uploadFolder)) {
+  fs.mkdirSync(uploadFolder, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadFolder);
+  },
+  filename: (req, file, cb) => {
+    const timestamp = Date.now();
+    const ext = path.extname(file.originalname);
+    const base = path.basename(file.originalname, ext);
+
+    cb(null, `${base}-${timestamp}${ext}`);
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, //10mb
+  },
+  fileFilter: (req, file, cb) => {
+    const allowed = [
+      "application/pdf",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+
+    if (!allowed.includes(file.mimetype)) {
+      return cb(new Error("Tipo de arquivo não suportado. Envie PDF ou DOCX"));
+    }
+
+    cb(null, true);
+  },
+});
+
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -12,6 +54,27 @@ const PORT = process.env.PORT || 3333;
 
 app.use(cors());
 app.use(express.json());
+
+app.post("/upload/document", upload.single("file"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({
+      error: "Nenhum arquivo enviado. Use o campo 'file' no formulário",
+    });
+  }
+
+  const { filename, originalname, mimetype, size, path: filePath } = req.file;
+
+  return res.json({
+    message: "Upload realizado com sucesso",
+    file: {
+      filename,
+      originalname,
+      mimetype,
+      size,
+      path: filePath,
+    },
+  });
+});
 
 app.post("/chat", async (req, res) => {
   const { message, history } = req.body;

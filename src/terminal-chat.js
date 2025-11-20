@@ -1,10 +1,6 @@
-import "dotenv/config";
-import OpenAI from "openai";
 import readline from "node:readline";
-
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+import { logger } from "./core/logger.js";
+import { simpleChat } from "./services/ai/chatService.js";
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -16,7 +12,9 @@ function ask(question) {
 }
 
 async function main() {
-  console.log("=== Trevvos IA - Chat via Terminal ===");
+  logger.info("Iniciando Trevvos IA - Terminal Chat", { context: "cli" });
+
+  console.log("=== Trevvos IA — Chat via Terminal (Architect Mode) ===");
   console.log('Digite sua mensagem ou "sair" para encerrar.\n');
 
   while (true) {
@@ -30,35 +28,35 @@ async function main() {
       break;
     }
 
-    console.log("\nIA pensagendo... \n");
+    console.log("\nIA pensando... \n");
 
     try {
-      const response = await client.responses.create({
-        model: "gpt-4o-mini",
-        input: [
-          {
-            role: "system",
-            content:
-              "Você é um assistente técnico, direto e amigável, ajudando um desenvolvedor a testar IA no terminal.",
-          },
-          {
-            role: "user",
-            content: mensagem,
-          },
-        ],
+      const reply = await simpleChat({
+        systemPrompt:
+          "Você é um assistente técnico da Trevvos, direto, amigável, em PT-BR, ajudando um dev a testar IA via terminal.",
+        userMessage: mensagem,
       });
 
       console.log("IA:");
-      console.log(response.output_text);
+      console.log(reply);
       console.log();
     } catch (error) {
-      console.error("Erro ao chamar a OPENAI:", error.message);
-      console.error();
+      logger.error("Falha ao obter resposta da IA no terminal", {
+        error: error.message,
+      });
+
+      console.log(
+        "Ocorreu um problema ao falar com a IA. Tente novamente em instantes.",
+      );
     }
   }
 
+  logger.info("Encerrando Terminal Chat", { context: "cli" });
   console.log("Chat encerrado. Valeu!");
   rl.close();
 }
 
-main().catch(console.error);
+main().catch((err) => {
+  logger.error("Erro falta no Terminal Chat", { error: err.message });
+  process.exit(1);
+});
