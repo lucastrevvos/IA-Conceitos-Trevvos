@@ -1,4 +1,4 @@
-import { simpleChat } from "../../services/ai/chatService";
+import { conversationChat, simpleChat } from "../../services/ai/chatService";
 
 export const chatController = {
   async handle(req, res, next) {
@@ -11,37 +11,18 @@ export const chatController = {
         });
       }
 
-      const safeHistory = Array.isArray(history) ? history : [];
-
-      const formattedHistory = safeHistory
-        .filter(
-          (msg) =>
-            msg &&
-            typeof msg.role === "string" &&
-            typeof msg.content === "string",
-        )
-        .map((msg) => ({
-          role: msg.role === "assistant" ? "assistant" : "user",
-          content: msg.content,
-        }));
-
       const systemPrompt =
         "Você é um assistente técnico, direto, amigável e em PT-BR, ajudando um dev a construir e testar uma API de IA em ambiente enterprise.";
 
-      const messages = [
-        { role: "system", content: systemPrompt },
-        ...formattedHistory,
-        { role: "user", content: message },
-      ];
-
-      const reply = await simpleChat({
+      const { reply, usedHistory } = await conversationChat({
         systemPrompt,
+        history,
         userMessage: message,
       });
 
       return res.json({
         reply,
-        usedHistory: formattedHistory,
+        usedHistory,
         requestId: req.requestId,
       });
     } catch (error) {
