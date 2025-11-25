@@ -1,3 +1,4 @@
+import { indexDocument } from "../../services/ai/ragService.js";
 import { processUploadedFile } from "../../services/files/fileTextService.js";
 
 export const uploadController = {
@@ -22,10 +23,16 @@ export const uploadController = {
         mimetype,
       });
 
+      //indexa no RAG
+      const { documentId, chunksCount } = await indexDocument({
+        file: { originalname, mimetype, size },
+        chunks,
+      });
+
       const preview = sanitizedText.slice(0, 800);
 
       return res.json({
-        message: "Upload e processamento realizados com sucesso.",
+        message: "Upload e processamento e indexação realizados com sucesso.",
         file: {
           filename,
           originalname,
@@ -38,6 +45,10 @@ export const uploadController = {
           lengthSanitized: sanitizedText.length,
           preview,
           chunksCount: chunks.length,
+        },
+        rag: {
+          documentId,
+          chunksCount,
         },
         requestId: req.requestId,
       });

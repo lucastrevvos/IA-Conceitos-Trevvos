@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  db:
+    image: ankane/pgvector:latest
+    container_name: trevvos-ia-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: trevvos
+      POSTGRES_PASSWORD: trevvos
+      POSTGRES_DB: trevvos_ia
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata_trevvos_ia:/var/lib/postgresql/data
+
+volumes:
+  pgdata_trevvos_ia:
