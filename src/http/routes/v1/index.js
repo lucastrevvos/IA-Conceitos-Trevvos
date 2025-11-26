@@ -3,6 +3,7 @@ import { createRateLimiter } from "../../../core/http/middlewares/rateLimiter.js
 import { summaryController } from "../../controllers/summaryController.js";
 import { uploadRouter } from "./uploadRoutes.js";
 import { ragRouter } from "./ragRoutes.js";
+import { chatRouter } from "./chatRoutes.js";
 
 const router = Router();
 
@@ -16,9 +17,7 @@ const resumoRateLimiter = createRateLimiter({
   windowMs: 60 * 1000,
 });
 
-router.post("/chat", chatRateLimiter, (req, res, next) =>
-  summaryController.handle(req, res, next),
-);
+router.use("/chat", chatRateLimiter, chatRouter);
 
 router.post("/resumo", resumoRateLimiter, (req, res, next) =>
   summaryController.handle(req, res, next),

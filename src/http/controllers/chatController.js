@@ -1,32 +1,39 @@
-import { conversationChat, simpleChat } from "../../services/ai/chatService";
+import {
+  createSession,
+  chatAssistant,
+} from "../../services/chat/chatService.js";
 
 export const chatController = {
-  async handle(req, res, next) {
+  start: async (req, res) => {
     try {
-      const { message, history } = req.body;
-
-      if (!message || typeof message !== "string") {
-        return res.status(400).json({
-          error: "Campo 'message' é obrigatório e deve ser uma string",
-        });
-      }
-
-      const systemPrompt =
-        "Você é um assistente técnico, direto, amigável e em PT-BR, ajudando um dev a construir e testar uma API de IA em ambiente enterprise.";
-
-      const { reply, usedHistory } = await conversationChat({
-        systemPrompt,
-        history,
-        userMessage: message,
-      });
+      const { documentId } = req.body;
+      const sessionId = await createSession({ documentId });
 
       return res.json({
-        reply,
-        usedHistory,
-        requestId: req.requestId,
+        ok: true,
+        sessionId,
       });
     } catch (error) {
-      return next(error);
+      return res.status(500).json({
+        error: error.message,
+      });
+    }
+  },
+
+  message: async (req, res) => {
+    try {
+      const { sessionId, message } = req.body;
+
+      const answer = await chatAssistant({ sessionId, message });
+
+      return res.json({
+        ok: true,
+        answer,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        error: error.message,
+      });
     }
   },
 };

@@ -1,4 +1,4 @@
-import { callOpenAI } from "./openaiClient.js";
+import { callOpenAI } from "../../infra/openai/openaiClient.js";
 
 export async function summarizeText({ text, sentences = 4 }) {
   const prompt = `

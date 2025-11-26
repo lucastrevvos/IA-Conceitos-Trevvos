@@ -1,6 +1,6 @@
 import { pool } from "../../infra/db/pgClient.js";
 import { embedTextBatch } from "./embeddingService.js";
-import { callOpenAI } from "./openaiClient.js";
+import { callOpenAI } from "../../infra/openai/openaiClient.js";
 import { logger } from "../../core/logger.js";
 
 export async function indexDocument({ file, chunks }) {
